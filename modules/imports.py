@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import os
+from datetime import datetime
 
 json_files=os.listdir("data")
 
@@ -128,3 +129,25 @@ def create_match_players_df():
                     'final_mark_2015': final_mark_2015, 'play_duration': play_duration, **player_stats})
 
     return pd.DataFrame(match_players_data).drop_duplicates()
+
+def create_historique_transferts_df():
+    historique_data = pd.DataFrame(columns=['player_id', 'name', 'team_name', 'start_date', 'end_date'])
+    for file in json_files:
+        data = open_json_file('data/' + file)
+        match_date = (data['dateMatch'])
+        for side in ['Home', 'Away']:
+            team_name = data[side]['club']
+            for player_id, player_info in data[side]['players'].items():
+                name = player_info['info']['lastname']
+                mask = (historique_data['player_id'] == player_id) & (historique_data['team_name'] == team_name)
+                if not historique_data[mask].empty:
+                    # Update end_date if entry exists
+                    historique_data.loc[mask, 'end_date'] = match_date
+                else:
+                    # Append new row if entry does not exist
+                    new_row = pd.DataFrame([{'player_id': player_id, 'name': name, 'team_name': team_name, 'start_date': match_date, 'end_date': match_date}])
+                    historique_data = pd.concat([historique_data, new_row], ignore_index=True)
+
+    return historique_data.drop_duplicates()
+
+
