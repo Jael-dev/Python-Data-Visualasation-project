@@ -32,14 +32,11 @@ def create_players_df():
     return pd.DataFrame(players_data).drop_duplicates()
 
 def create_formations_types_df(side,data):
-    formations_data = []
     players=data[side]['players']
     for p_id, p_info in players.items():
         formation = p_info['info']['formation_used']
-        if formation not in formations_data:  
-            formations_data.append(formation)
-           
-    return (formations_data)
+        return formation 
+    return None 
 
 def create_matches_df():
     matches_data=[]
@@ -78,10 +75,11 @@ def create_highlight_df():
     for file in json_files:
         data=open_json_file('data/'+file)
         matchid = data['id']
-        for matchdata in data['matchData']:
-            time = matchdata['timeline']['time'],  
-            playerid = matchdata['timeline']['playerId'],
-            thetype = matchdata['timeline']['type']
+        matchdata = data['matchData']
+        for timeline in matchdata['timeline']:
+            time = timeline['time']
+            playerid = timeline.get('playerId', None)
+            thetype = timeline['type']
             highlight_data.append({'matchid': matchid, 'time': time, 'playerid': playerid, 'type': thetype})
     return pd.DataFrame(highlight_data).drop_duplicates()
 
@@ -91,12 +89,13 @@ def create_substitutions_df():
     for file in json_files:
         data=open_json_file('data/'+file)
         matchid = data['id']
-        for side in ['Home', 'Away']:
-            for substitution in data[side]['substitutions']:
+        for side in ['home', 'away']:
+            sside = data['matchData'][side]
+            for substitution in sside.get('substitutions', []):
                 time = substitution['time']
                 player_in = substitution['subOn']
                 player_out = substitution['subOff']
-                reason = substitution['reason']
+                reason = substitution.get('reason', None)
                 substitution_data.append({'matchid': matchid, 'time': time, 'on_playerid': player_in, 'off_playerid': player_out, 'reason': reason})
     return pd.DataFrame(substitution_data).drop_duplicates()
 
@@ -109,17 +108,23 @@ def create_match_players_df():
     for file in json_files:
         data = open_json_file('data/'+file)
         matchid = data['id']
-        
         for side in ['Home', 'Away']:
             team_id = data[side]['id']
             for player_id, player_info in data[side]['players'].items():
-                player_id = player_id,
-                team_id = player_info['info']['idteam']
-                position = player_info['info']['position']
-                formation_place = player_info['info']['formation_place']
-                quotation_player = get_player_quotation(data['quotationPlayers'], player_id)
-                final_mark_2015 = player_info['info']['note_final_2015']
+                player_id = player_id
+                player_stat= player_info
+                player_info = player_info['info']
+                team_id = player_info['idteam']
+                position = player_info['position']
+                formation_place = player_info['formation_place']
+                quotation_player = get_player_quotation(data.get('quotationPlayers', {}), player_id)
+                final_mark_2015 = player_info.get('note_final_2015', None)  
+                play_duration = player_info['mins_played']
+                stats = player_stat.get('stat', {})
+                player_stats = {f"{k}": v for k, v in stats.items()}
+                match_players_data.append({
+                    'matchid': matchid, 'teamid': team_id, 'playerid': player_id, 'position': position,
+                    'formation_place': formation_place, 'quotation_player': quotation_player,
+                    'final_mark_2015': final_mark_2015, 'play_duration': play_duration, **player_stats})
 
-
-#play_duration,  player_stats (une colonne 
-#par champ: penalty_conceaded, red_card, …). 
+    return pd.DataFrame(match_players_data).drop_duplicates()
