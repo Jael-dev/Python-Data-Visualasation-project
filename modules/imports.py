@@ -50,7 +50,7 @@ def create_matches_df():
         duration = data['matchTime']
         period = data['period']
         championship = data.get('championship', 0)
-        quotation_pre_game = data.get('quotationPreGame', 0)
+        quotation_pre_game = data.get('quotationPreGame', {})
         quotation_away = quotation_pre_game.get('Away', 0)
         quotation_home = quotation_pre_game.get('Home', 0)
         quotation_draw = quotation_pre_game.get('Draw', 0)

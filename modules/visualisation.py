@@ -37,3 +37,11 @@ def analyze_matches(df, start_date, end_date, championship_id):
     results_df = pd.DataFrame.from_dict(results, orient='index')
     return results_df
 
+
+def determine_outcome(row):
+    if row['home_score'] > row['away_score']:
+        return 'Home Win'
+    elif row['home_score'] < row['away_score']:
+        return 'Away Win'
+    else:
+        return 'Draw'
