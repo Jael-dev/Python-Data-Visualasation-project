@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 
 def analyze_matches(df, start_date, end_date, championship_id):
     # Filter by date and championship
-    mask = (df['date'] >= start_date) & (df['date'] <= end_date) & (df['championship'] == championship_id)
+    mask = (df['date'] >= start_date) & (df['date'] <= end_date) & (df['chamionship'] == championship_id)
     filtered_df = df[mask]
 
     # Analyze results
     results = {}
     for i, match in filtered_df.iterrows():
-        home_team, away_team = match['home_team'], match['away_team']
+        home_team, away_team = match['hometeam'], match['awayteam']
         home_score, away_score = match['home_score'], match['away_score']
         
         # Initialize teams in the dictionary if not already
@@ -37,12 +37,3 @@ def analyze_matches(df, start_date, end_date, championship_id):
     results_df = pd.DataFrame.from_dict(results, orient='index')
     return results_df
 
-# Apply the function for Serie A 2019-2020
-serie_a_results = analyze_matches(matches_df, '2019-08-24', '2020-08-02', 5)
-
-# Plotting
-serie_a_results.sort_values('matches', ascending=False).plot(kind='bar', figsize=(14, 7))
-plt.title('Match Outcomes by Club for Serie A 2019-2020')
-plt.xlabel('Club')
-plt.ylabel('Number of Matches')
-plt.show()
