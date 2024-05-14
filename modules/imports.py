@@ -154,8 +154,8 @@ def create_historique_transferts_df():
 
 def create_historique_transferts_df(data_df):
     historique_data = pd.DataFrame(columns=['player_id', 'name', 'team_name', 'start_date', 'end_date'])
-    
-     # Iterate through each row in the DataFrame
+
+    # Iterate through each row in the DataFrame
     for index, row in data_df.iterrows():
         player_id = row['playerid']
         name = row['lastname']
@@ -170,7 +170,13 @@ def create_historique_transferts_df(data_df):
             historique_data.loc[existing.index, 'end_date'] = match_date
         else:
             # Create a new entry, first convert dictionary to DataFrame
-            new_row = pd.DataFrame([{'player_id': player_id, 'name': name, 'team_name': team_name, 'start_date': match_date, 'end_date': match_date}])
-            historique_data = pd.concat([historique_data, new_row], ignore_index=True)
+            new_row = {'player_id': player_id, 'name': name, 'team_name': team_name, 'start_date': match_date, 'end_date': match_date}
+            new_row_df = pd.DataFrame([new_row])
+
+            # Check for empty or all-NA columns and exclude them if necessary
+            new_row_df = new_row_df.dropna(axis=1, how='all')
+
+            # Concatenate while ensuring the new DataFrame has the same columns
+            historique_data = pd.concat([historique_data, new_row_df], ignore_index=True)
 
     return historique_data
