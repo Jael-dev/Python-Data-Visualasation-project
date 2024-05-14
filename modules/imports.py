@@ -30,7 +30,7 @@ def create_players_df():
                 player_id = p_id
                 lastname = p_info['info']['lastname']
                 players_data.append({'idplayer': player_id, 'lastname': lastname})
-    return pd.DataFrame(players_data).fillna(0).drop_duplicates()
+    return pd.DataFrame(players_data).fillna(0).drop_duplicates(subset='idplayer', keep='first')
 
 def create_formations_types_df(side,data):
     players=data[side]['players']
@@ -152,4 +152,25 @@ def create_historique_transferts_df():
 
     return historique_data.drop_duplicates()
 
+def create_historique_transferts_df(data_df):
+    historique_data = pd.DataFrame(columns=['player_id', 'name', 'team_name', 'start_date', 'end_date'])
+    
+     # Iterate through each row in the DataFrame
+    for index, row in data_df.iterrows():
+        player_id = row['playerid']
+        name = row['lastname']
+        team_name = row['name']  # Verify this is the correct column for the team name
+        match_date = row['date']
 
+        # Check if there is an existing record for this player and team
+        existing = historique_data[(historique_data['player_id'] == player_id) & (historique_data['team_name'] == team_name)]
+
+        if not existing.empty:
+            # Update the end_date of the existing entry
+            historique_data.loc[existing.index, 'end_date'] = match_date
+        else:
+            # Create a new entry, first convert dictionary to DataFrame
+            new_row = pd.DataFrame([{'player_id': player_id, 'name': name, 'team_name': team_name, 'start_date': match_date, 'end_date': match_date}])
+            historique_data = pd.concat([historique_data, new_row], ignore_index=True)
+
+    return historique_data
