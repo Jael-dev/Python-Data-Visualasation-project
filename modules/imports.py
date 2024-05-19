@@ -1,7 +1,6 @@
 import pandas as pd
 import json
 import os
-from datetime import datetime
 
 json_files=os.listdir("data")
 
